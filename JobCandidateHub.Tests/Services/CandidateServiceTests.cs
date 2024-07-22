@@ -9,19 +9,12 @@ namespace JobCandidateHub.Tests.Services
     [Collection("Sequential-Tests")]
     public class CandidateServiceTests
     {
-        private readonly DbContextOptions<CandidateDbContext> _contextOptions;
-        private readonly IValidationService _validationService;
-        private readonly IMemoryCache _cache;
+        private readonly DbContextOptions<CandidateDbContext> _contextOptions = new DbContextOptionsBuilder<CandidateDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase")
+            .Options;
 
-        public CandidateServiceTests()
-        {
-            _contextOptions = new DbContextOptionsBuilder<CandidateDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDatabase")
-                .Options;
-
-            _validationService = new ValidationService();
-            _cache = new MemoryCache(new MemoryCacheOptions());
-        }
+        private readonly IValidationService _validationService = new ValidationService();
+        private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
         private CandidateService GetCandidateService()
         {
@@ -53,12 +46,14 @@ namespace JobCandidateHub.Tests.Services
 
             var result = service.UpsertCandidate(candidate);
 
-            using var context = new CandidateDbContext(_contextOptions);
+            await using var context = new CandidateDbContext(_contextOptions);
             var dbCandidate = await context.Candidates.FirstOrDefaultAsync(c => c.Email == candidate.Email);
             Assert.NotNull(dbCandidate);
             Assert.Equal(candidate.Email, dbCandidate.Email);
             Assert.Equal(candidate.FirstName, dbCandidate.FirstName);
             Assert.Equal(candidate.LastName, dbCandidate.LastName);
+
+            Assert.NotNull(result);
         }
 
             [Fact]
@@ -76,7 +71,7 @@ namespace JobCandidateHub.Tests.Services
                     BestTimeToCall = "12:00-16:00"
                 };
 
-                using (var context = new CandidateDbContext(_contextOptions))
+                await using (var context = new CandidateDbContext(_contextOptions))
                 {
                     context.Candidates.Add(candidate);
                     await context.SaveChangesAsync();
@@ -86,7 +81,7 @@ namespace JobCandidateHub.Tests.Services
 
                 var result = service.UpsertCandidate(candidate);
 
-                using (var context = new CandidateDbContext(_contextOptions))
+                await using (var context = new CandidateDbContext(_contextOptions))
                 {
                     var dbCandidate = await context.Candidates.FirstOrDefaultAsync(c => c.Email == candidate.Email);
                     Assert.NotNull(dbCandidate);
@@ -94,6 +89,8 @@ namespace JobCandidateHub.Tests.Services
                     Assert.Equal("Jane", dbCandidate.FirstName);
                     Assert.Equal(candidate.LastName, dbCandidate.LastName);
                 }
+
+                Assert.NotNull(result);
             }
 
         [Theory]
@@ -225,10 +222,11 @@ namespace JobCandidateHub.Tests.Services
 
             var result = service.UpsertCandidate(candidate);
 
-            using var context = new CandidateDbContext(_contextOptions);
+            await using var context = new CandidateDbContext(_contextOptions);
             var dbCandidate = await context.Candidates.FirstOrDefaultAsync(c => c.Email == candidate.Email);
             Assert.NotNull(dbCandidate);
             Assert.Equal(candidate.LinkedInProfile, dbCandidate.LinkedInProfile);
+            Assert.NotNull(result);
         }
 
         [Theory]
@@ -271,10 +269,11 @@ namespace JobCandidateHub.Tests.Services
 
             var result = service.UpsertCandidate(candidate);
 
-            using var context = new CandidateDbContext(_contextOptions);
+            await using var context = new CandidateDbContext(_contextOptions);
             var dbCandidate = await context.Candidates.FirstOrDefaultAsync(c => c.Email == candidate.Email);
             Assert.NotNull(dbCandidate);
             Assert.Equal(candidate.GitHubProfile, dbCandidate.GitHubProfile);
+            Assert.NotNull(result);
         }
 
         [Theory]

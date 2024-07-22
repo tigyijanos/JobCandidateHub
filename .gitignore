@@ -398,3 +398,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/JobCandidateHub/candidates.db-shm
+/JobCandidateHub/candidates.db-wal

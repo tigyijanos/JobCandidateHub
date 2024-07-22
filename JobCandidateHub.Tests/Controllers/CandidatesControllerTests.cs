@@ -11,19 +11,12 @@ namespace JobCandidateHub.Tests.Controllers
     [Collection("Sequential-Tests")]
     public class CandidatesControllerTests
     {
-        private readonly DbContextOptions<CandidateDbContext> _contextOptions;
-        private readonly IValidationService _validationService;
-        private readonly IMemoryCache _cache;
+        private readonly DbContextOptions<CandidateDbContext> _contextOptions = new DbContextOptionsBuilder<CandidateDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase")
+            .Options;
 
-        public CandidatesControllerTests()
-        {
-            _contextOptions = new DbContextOptionsBuilder<CandidateDbContext>()
-                 .UseInMemoryDatabase(databaseName: "TestDatabase")
-                 .Options;
-
-            _validationService = new ValidationService();
-            _cache = new MemoryCache(new MemoryCacheOptions());
-        }
+        private readonly IValidationService _validationService = new ValidationService();
+        private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
         private CandidatesController GetController()
         {
@@ -78,7 +71,7 @@ namespace JobCandidateHub.Tests.Controllers
                 BestTimeToCall = "12:00-16:00"
             };
 
-            using (var context = new CandidateDbContext(_contextOptions))
+            await using (var context = new CandidateDbContext(_contextOptions))
             {
                 context.Candidates.Add(candidate);
                 await context.SaveChangesAsync();

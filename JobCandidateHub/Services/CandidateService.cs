@@ -8,44 +8,41 @@ namespace JobCandidateHub.Services
 {
     public class CandidateService(CandidateDbContext context, IMemoryCache cache, IValidationService validationService) : ICandidateService
     {
-        private readonly CandidateDbContext _context = context;
-        private readonly IMemoryCache _cache = cache;
-        private readonly IValidationService _validationService = validationService;
         private static readonly object _lock = new();
 
         public Candidate UpsertCandidate(Candidate candidate)
         {
-            if (!_validationService.Validate(candidate, out var validationResults))
+            if (!validationService.Validate(candidate, out var validationResults))
             {
                 throw new ValidationException(validationResults);
             }
 
             lock (_lock)
             {
-                var cachedCandidate = _cache.Get<Candidate>(candidate.Email!);
+                var cachedCandidate = cache.Get<Candidate>(candidate.Email!);
                 if (cachedCandidate != null)
                 {
                     candidate.Id = cachedCandidate.Id;
                     UpdateCandidateProperties(cachedCandidate, candidate);
-                    _context.Update(cachedCandidate);
+                    context.Update(cachedCandidate);
                 }
                 else
                 {
-                    var existingCandidate = _context.Candidates.AsNoTracking().FirstOrDefault(c => c.Email == candidate.Email);
+                    var existingCandidate = context.Candidates.AsNoTracking().FirstOrDefault(c => c.Email == candidate.Email);
                     if (existingCandidate != null)
                     {
                         candidate.Id = existingCandidate.Id;
                         UpdateCandidateProperties(existingCandidate, candidate);
-                        _context.Update(existingCandidate);
+                        context.Update(existingCandidate);
                     }
                     else
                     {
-                        _context.Candidates.Add(candidate);
+                        context.Candidates.Add(candidate);
                     }
                 }
 
-                _context.SaveChanges();
-                _cache.Set(candidate.Email!, candidate, TimeSpan.FromMinutes(10)); // Cache for 10 minutes
+                context.SaveChanges();
+                cache.Set(candidate.Email!, candidate, TimeSpan.FromMinutes(10)); // Cache for 10 minutes
             }
 
             return candidate;

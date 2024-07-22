@@ -5,12 +5,7 @@ namespace JobCandidateHub.Tests.Services
 {
     public class ValidationServiceTests
     {
-        private readonly ValidationService _validationService;
-
-        public ValidationServiceTests()
-        {
-            _validationService = new ValidationService();
-        }
+        private readonly ValidationService _validationService = new();
 
         [Fact]
         public void Validate_ReturnsTrue_WhenModelIsValid()

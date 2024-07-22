@@ -8,14 +8,12 @@ namespace JobCandidateHub.Controllers
     [ApiController]
     public class CandidatesController(ICandidateService candidateService) : ControllerBase
     {
-        private readonly ICandidateService _candidateService = candidateService;
-
         [HttpPost]
         public IActionResult UpsertCandidate([FromBody] Candidate candidate)
         {
             try
             {
-                var result = _candidateService.UpsertCandidate(candidate);
+                var result = candidateService.UpsertCandidate(candidate);
                 return Ok(result);
             }
             catch (ValidationException ex)
